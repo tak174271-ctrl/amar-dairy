@@ -1,12 +1,14 @@
 let cart = [];
 
+const WHATSAPP_NUMBER = "918081104054";
+
 function addItem(name, price) {
   const item = cart.find(product => product.name === name);
 
   if (item) {
     item.qty++;
   } else {
-    cart.push({ name: name, price: price, qty: 1 });
+    cart.push({ name, price, qty: 1 });
   }
 
   showCart();
@@ -23,8 +25,8 @@ function showCart() {
 
   if (!box || !totalBox) return;
 
-  let total = 0;
   box.innerHTML = "";
+  let total = 0;
 
   if (cart.length === 0) {
     box.textContent = "आपका कार्ट खाली है।";
@@ -35,9 +37,7 @@ function showCart() {
     total += amount;
 
     const p = document.createElement("p");
-    p.textContent =
-      item.name + " × " + item.qty + " = ₹" + amount;
-
+    p.textContent = `${item.name} × ${item.qty} = ₹${amount}`;
     box.appendChild(p);
   });
 
@@ -50,29 +50,24 @@ function orderWhatsApp() {
     return;
   }
 
-  const phone = prompt(
-    "Amar Dairy का WhatsApp नंबर देश के कोड सहित लिखें।"
-  );
-
-  if (!phone || !/^\d{10,15}$/.test(phone)) {
-    alert("सही WhatsApp नंबर दर्ज करें।");
-    return;
-  }
-
-  let message = "Namaste Amar Dairy! Mera order:\n";
+  let message = "नमस्ते Amar Dairy! मुझे यह ऑर्डर करना है:\n\n";
   let total = 0;
 
   cart.forEach(item => {
     const amount = item.price * item.qty;
     total += amount;
-    message += item.name + " x " + item.qty +
-      " = Rs. " + amount + "\n";
+
+    message += `${item.name} × ${item.qty} = ₹${amount}\n`;
   });
 
-  message += "\nTotal = Rs. " + total;
+  message += `\nकुल कीमत: ₹${total}`;
+  message += "\n\nकृपया मेरे ऑर्डर की पुष्टि करें।";
 
-  const url = "https://wa.me/" + phone +
-    "?text=" + encodeURIComponent(message);
+  const url =
+    "https://wa.me/" +
+    WHATSAPP_NUMBER +
+    "?text=" +
+    encodeURIComponent(message);
 
   window.open(url, "_blank");
 }
