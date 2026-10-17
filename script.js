@@ -1,6 +1,6 @@
 let cart = [];
 
-const WHATSAPP_NUMBER = "+918081104054";
+const WHATSAPP_NUMBER = "918081104054";
 
 function addItem(name, price) {
   const item = cart.find(product => product.name === name);
