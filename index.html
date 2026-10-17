@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amar Dairy | अमर डेयरी</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f8f3;
+      color: #26352b;
+    }
+
+    header {
+      background: #176b3a;
+      color: white;
+      padding: 22px 12px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 30px;
+    }
+
+    nav {
+      background: #104d2a;
+      padding: 13px;
+      text-align: center;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+
+    .hero {
+      background: #e2f2df;
+      padding: 40px 15px;
+      text-align: center;
+    }
+
+    .hero h2 {
+      color: #176b3a;
+      font-size: 27px;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #176b3a;
+      color: white;
+      padding: 11px 17px;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    section {
+      padding: 30px 15px;
+    }
+
+    .heading {
+      text-align: center;
+      color: #176b3a;
+      margin-bottom: 22px;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      max-width: 650px;
+      margin: auto;
+    }
+
+    .product {
+      background: white;
+      padding: 18px 10px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 3px 10px #00000012;
+    }
+
+    .emoji {
+      font-size: 40px;
+    }
+
+    .product h3 {
+      margin: 8px 0;
+    }
+
+    .price {
+      color: #176b3a;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .cart {
+      max-width: 650px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    #cartItems p {
+      padding: 8px 0;
+    }
+
+    .contact {
+      background: #e2f2df;
+      text-align: center;
+    }
+
+    footer {
+      background: #104d2a;
+      color: white;
+      text-align: center;
+      padding: 20px 10px;
+    }
+
+    @media (max-width: 350px) {
+      .products {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🥛 Amar Dairy</h1>
+    <p>ताजगी और शुद्धता का भरोसा</p>
+  </header>
+
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#products">Products</a>
+    <a href="#cart">Cart</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="hero" id="home">
+    <h2>आपकी अपनी अमर डेयरी</h2>
+    <p>दूध, दही, पनीर और घी के लिए आपका स्वागत है।</p>
+    <a href="#products" class="btn">प्रोडक्ट देखें</a>
+  </div>
+
+  <section id="products">
+    <h2 class="heading">हमारे प्रोडक्ट</h2>
+
+    <div class="products">
+      <div class="product">
+        <div class="emoji">🥛</div>
+        <h3>ताजा दूध</h3>
+        <p>प्रति लीटर</p>
+        <div class="price">₹60</div>
+        <button class="btn" onclick="addItem('दूध',60)">कार्ट में जोड़ें</button>
+      </div>
+
+      <div class="product">
+        <div class="emoji">🥣</div>
+        <h3>दही</h3>
+        <p>प्रति किलो</p>
+        <div class="price">₹80</div>
+        <button class="btn" onclick="addItem('दही',80)">कार्ट में जोड़ें</button>
+      </div>
+
+      <div class="product">
+        <div class="emoji">🧀</div>
+        <h3>पनीर</h3>
+        <p>प्रति किलो</p>
+        <div class="price">₹360</div>
+        <button class="btn" onclick="addItem('पनीर',360)">कार्ट में जोड़ें</button>
+      </div>
+
+      <div class="product">
+        <div class="emoji">🫙</div>
+        <h3>देसी घी</h3>
+        <p>प्रति किलो</p>
+        <div class="price">₹600</div>
+        <button class="btn" onclick="addItem('देसी घी',600)">कार्ट में जोड़ें</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="cart">
+    <h2 class="heading">🛒 आपका कार्ट</h2>
+    <div class="cart">
+      <div id="cartItems">आपका कार्ट खाली है।</div>
+      <h3 style="margin:15px 0">कुल: ₹<span id="total">0</span></h3>
+      <button class="btn" onclick="orderWhatsApp()">WhatsApp पर ऑर्डर करें</button>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <h2>संपर्क करें</h2>
+    <p>Amar Dairy</p>
+    <p>Nibi, Naini, Prayagraj</p>
+  </section>
+
+  <footer>
+    <p>© 2026 Amar Dairy</p>
+    <p>आपकी अपनी डेयरी ❤️</p>
+  </footer>
+
+  <script>
+    let cart = [];
+
+    function addItem(name, price) {
+      let item = cart.find(p => p.name === name);
+
+      if (item) {
+        item.qty++;
+      } else {
+        cart.push({name: name, price: price, qty: 1});
+      }
+
+      showCart();
+    }
+
+    function showCart() {
+      const box = document.getElementById("cartItems");
+      let total = 0;
+
+      if (cart.length === 0) {
+        box.textContent = "आपका कार्ट खाली है।";
+      } else {
+        box.innerHTML = "";
+
+        cart.forEach(item => {
+          total += item.price * item.qty;
+
+          const p = document.createElement("p");
+          p.textContent = item.name + " × " + item.qty +
+            " = ₹" + (item.price * item.qty);
+          box.appendChild(p);
+        });
+      }
+
+      document.getElementById("total").textContent = total;
+    }
+
+    function orderWhatsApp() {
+      if (cart.length === 0) {
+        alert("पहले प्रोडक्ट कार्ट में जोड़ें।");
+        return;
+      }
+
+      const phone = prompt(
+        "Amar Dairy का WhatsApp नंबर देश के कोड सहित लिखें।"
+      );
+
+      if (!phone || !/^\d{10,15}$/.test(phone)) {
+        alert("सही WhatsApp नंबर लिखें।");
+        return;
+      }
+
+      let message = "Namaste Amar Dairy! Mera order:\n";
+      let total = 0;
+
+      cart.forEach(item => {
+        const amount = item.price * item.qty;
+        total += amount;
+        message += item.name + " x " + item.qty +
+          " = Rs. " + amount + "\n";
+      });
+
+      message += "\nTotal = Rs. " + total;
+
+      window.open(
+        "https://wa.me/" + phone +
+        "?text=" + encodeURIComponent(message),
+        "_blank"
+      );
+    }
+  </script>
+
+</body>
+</html>
