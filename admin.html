@@ -1,1 +1,150 @@
 
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amar Dairy - Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f7f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 { color: #176b3a; }
+    .card {
+      background: white;
+      padding: 18px;
+      margin: 15px 0;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0001;
+    }
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+    }
+    button {
+      padding: 11px 15px;
+      background: #176b3a;
+      color: white;
+      border: 0;
+      border-radius: 7px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .delete { background: #b42318; }
+    .note { color: #9b2c2c; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🥛 Amar Dairy Admin</h1>
+    <p>प्रोडक्ट और कीमत मैनेज करें</p>
+
+    <div class="card">
+      <h2>नया प्रोडक्ट जोड़ें</h2>
+      <input id="name" placeholder="प्रोडक्ट का नाम">
+      <input id="price" type="number" min="1" placeholder="कीमत (₹)">
+      <button onclick="addProduct()">प्रोडक्ट जोड़ें</button>
+    </div>
+
+    <div class="card">
+      <h2>प्रोडक्ट सूची</h2>
+      <div id="products"></div>
+    </div>
+
+    <p class="note">
+      ध्यान दें: यह शुरुआती डेमो है। डेटा इसी ब्राउज़र में सेव होता है।
+      यह सुरक्षित Owner Login नहीं है और कीमतें ग्राहक की वेबसाइट पर
+      अपने-आप अपडेट नहीं होंगी।
+    </p>
+  </div>
+
+  <script>
+    let products = [];
+
+    try {
+      products = JSON.parse(
+        localStorage.getItem("amarDairyProducts") || "[]"
+      );
+      if (!Array.isArray(products)) products = [];
+    } catch {
+      products = [];
+    }
+
+    function saveProducts() {
+      localStorage.setItem(
+        "amarDairyProducts",
+        JSON.stringify(products)
+      );
+      showProducts();
+    }
+
+    function addProduct() {
+      const nameInput = document.getElementById("name");
+      const priceInput = document.getElementById("price");
+      const name = nameInput.value.trim();
+      const price = Number(priceInput.value);
+
+      if (!name || !Number.isFinite(price) || price <= 0) {
+        alert("प्रोडक्ट का नाम और सही कीमत डालें।");
+        return;
+      }
+
+      products.push({
+        id: Date.now(),
+        name: name,
+        price: price
+      });
+
+      saveProducts();
+      nameInput.value = "";
+      priceInput.value = "";
+      alert("प्रोडक्ट जुड़ गया!");
+    }
+
+    function deleteProduct(id) {
+      products = products.filter(p => p.id !== id);
+      saveProducts();
+    }
+
+    function showProducts() {
+      const box = document.getElementById("products");
+      box.replaceChildren();
+
+      if (products.length === 0) {
+        box.textContent = "अभी कोई प्रोडक्ट नहीं है।";
+        return;
+      }
+
+      products.forEach(product => {
+        const row = document.createElement("div");
+        row.className = "card";
+
+        const title = document.createElement("strong");
+        title.textContent =
+          product.name + " — ₹" + product.price;
+
+        const button = document.createElement("button");
+        button.className = "delete";
+        button.textContent = "डिलीट";
+        button.onclick = () => deleteProduct(product.id);
+
+        row.append(title, document.createElement("br"), button);
+        box.appendChild(row);
+      });
+    }
+
+    showProducts();
+  </script>
+</body>
+</html>
