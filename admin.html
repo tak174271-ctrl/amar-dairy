@@ -7,6 +7,7 @@
 
   <style>
     * { box-sizing: border-box; }
+
     body {
       font-family: Arial, sans-serif;
       background: #f1f8f1;
@@ -14,6 +15,7 @@
       padding: 16px;
       color: #222;
     }
+
     .container {
       max-width: 650px;
       margin: auto;
@@ -22,8 +24,10 @@
       border-radius: 12px;
       box-shadow: 0 2px 12px #0001;
     }
+
     h1 { color: #187333; text-align: center; }
     h2 { margin-top: 26px; }
+
     input, button {
       width: 100%;
       padding: 12px;
@@ -31,17 +35,21 @@
       font-size: 16px;
       border-radius: 7px;
     }
+
     input { border: 1px solid #bbb; }
+
     button {
       border: 0;
       color: white;
       background: #187333;
       cursor: pointer;
     }
+
     button:disabled { opacity: .6; }
     .secondary { background: #555; }
     .edit { background: #1769aa; }
     .delete { background: #c62828; }
+
     .product {
       border: 1px solid #ddd;
       border-radius: 8px;
@@ -49,10 +57,36 @@
       margin-top: 10px;
       overflow-wrap: anywhere;
     }
+
+    .product-image {
+      display: block;
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      margin: 10px auto;
+      border-radius: 8px;
+      background: #f8f8f8;
+    }
+
+    .preview {
+      display: none;
+      max-width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      margin: 10px auto;
+      border-radius: 8px;
+    }
+
     .actions { display: flex; gap: 8px; }
     .actions button { flex: 1; }
     #message { white-space: pre-wrap; }
     .hidden { display: none; }
+
+    .hint {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 
@@ -62,9 +96,16 @@
 
     <section id="loginSection">
       <h2>Admin Login</h2>
-      <input id="email" type="email" placeholder="Admin Email" autocomplete="username">
-      <input id="password" type="password" placeholder="Password" autocomplete="current-password">
-      <button id="loginBtn" onclick="login()">Login</button>
+
+      <input id="email" type="email"
+        placeholder="Admin Email" autocomplete="username" required>
+
+      <input id="password" type="password"
+        placeholder="Password" autocomplete="current-password" required>
+
+      <button id="loginBtn" type="button" onclick="login()">
+        Login
+      </button>
     </section>
 
     <section id="adminSection" class="hidden">
@@ -72,12 +113,41 @@
       <button class="secondary" onclick="logout()">Logout</button>
 
       <h2 id="formTitle">नया प्रोडक्ट जोड़ें</h2>
+
       <form id="productForm">
-        <input id="productName" type="text" placeholder="प्रोडक्ट का नाम (जैसे दूध)" required>
-        <input id="productPrice" type="number" placeholder="कीमत (₹)" min="0" step="0.01" required>
-        <input id="productUnit" type="text" placeholder="यूनिट (जैसे litre, kg, piece)" value="litre" required>
-        <button id="saveBtn" type="submit">प्रोडक्ट जोड़ें</button>
-        <button id="cancelEditBtn" class="secondary hidden" type="button" onclick="cancelEdit()">Edit रद्द करें</button>
+        <input id="productName" type="text"
+          placeholder="प्रोडक्ट का नाम (जैसे दूध)" required>
+
+        <input id="productPrice" type="number"
+          placeholder="कीमत (₹)" min="0" step="0.01" required>
+
+        <input id="productUnit" type="text"
+          placeholder="यूनिट (जैसे litre, kg, piece)"
+          value="litre" required>
+
+        <label for="productImageUrl">
+          <strong>प्रोडक्ट फोटो का URL (वैकल्पिक)</strong>
+        </label>
+
+        <input id="productImageUrl" type="url"
+          placeholder="https://example.com/milk.jpg"
+          inputmode="url">
+
+        <p class="hint">
+          फोटो की सीधी, सार्वजनिक लिंक यहाँ डालें।
+          लिंक खाली छोड़ने पर प्रोडक्ट की पुरानी इमोजी दिखाई देगी।
+        </p>
+
+        <img id="imagePreview" class="preview" alt="फोटो प्रीव्यू">
+
+        <button id="saveBtn" type="submit">
+          प्रोडक्ट जोड़ें
+        </button>
+
+        <button id="cancelEditBtn" class="secondary hidden"
+          type="button" onclick="cancelEdit()">
+          Edit रद्द करें
+        </button>
       </form>
 
       <h2>सभी प्रोडक्ट</h2>
@@ -101,7 +171,10 @@
       appId: "1:925508209476:web:bf9dc517019f055a4d6511"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
     const auth = firebase.auth();
     const db = firebase.firestore();
 
@@ -118,15 +191,65 @@
 
     function readableError(error) {
       const messages = {
-        "auth/invalid-credential": "Email या password गलत है।",
-        "auth/user-not-found": "इस email का account नहीं मिला।",
-        "auth/wrong-password": "Password गलत है।",
-        "auth/too-many-requests": "बहुत कोशिशें हुई हैं। थोड़ी देर बाद फिर प्रयास करें।",
-        "permission-denied": "Permission नहीं मिली। Firebase Firestore Rules जाँचें।",
-        "unavailable": "Internet या Firebase connection में समस्या है।"
+        "auth/invalid-credential":
+          "Email या password गलत है।",
+        "auth/user-not-found":
+          "इस email का account नहीं मिला।",
+        "auth/wrong-password":
+          "Password गलत है।",
+        "auth/too-many-requests":
+          "बहुत कोशिशें हुई हैं। थोड़ी देर बाद प्रयास करें।",
+        "permission-denied":
+          "Permission नहीं मिली। Firebase Firestore Rules जाँचें।",
+        "unavailable":
+          "Internet या Firebase connection में समस्या है।"
       };
-      return messages[error.code] || error.message || "कुछ गड़बड़ हुई।";
+
+      return messages[error.code] ||
+        error.message || "कुछ गड़बड़ हुई।";
     }
+
+    function validImageUrl(value) {
+      if (!value) return true;
+
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" ||
+          url.protocol === "http:";
+      } catch {
+        return false;
+      }
+    }
+
+    function previewImage() {
+      const input = byId("productImageUrl");
+      const preview = byId("imagePreview");
+      const url = input.value.trim();
+
+      preview.style.display = "none";
+      preview.removeAttribute("src");
+
+      if (!url || !validImageUrl(url)) return;
+
+      preview.onload = () => {
+        preview.style.display = "block";
+      };
+
+      preview.onerror = () => {
+        preview.style.display = "none";
+        showMessage(
+          "फोटो लोड नहीं हुई। URL की जाँच करें।",
+          true
+        );
+      };
+
+      preview.src = url;
+    }
+
+    byId("productImageUrl").addEventListener(
+      "input",
+      previewImage
+    );
 
     async function login() {
       const email = byId("email").value.trim();
@@ -166,22 +289,28 @@
       if (user) {
         loadProducts();
       } else {
+        productCache = [];
         byId("productsList").textContent = "";
       }
     });
 
     async function loadProducts() {
-      byId("productsList").textContent = "प्रोडक्ट लोड हो रहे हैं...";
+      byId("productsList").textContent =
+        "प्रोडक्ट लोड हो रहे हैं...";
 
       try {
         const snapshot = await db.collection("products").get();
+
         productCache = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
+
         renderProducts();
       } catch (error) {
-        byId("productsList").textContent = "प्रोडक्ट लोड नहीं हुए।";
+        byId("productsList").textContent =
+          "प्रोडक्ट लोड नहीं हुए।";
+
         showMessage(readableError(error), true);
       }
     }
@@ -199,12 +328,27 @@
         const card = document.createElement("div");
         card.className = "product";
 
+        const imageUrl =
+          product.imageUrl || product.image || product.photo || "";
+
+        if (validImageUrl(imageUrl) && imageUrl) {
+          const img = document.createElement("img");
+          img.className = "product-image";
+          img.src = imageUrl;
+          img.alt = product.name || "प्रोडक्ट फोटो";
+          img.loading = "lazy";
+
+          img.onerror = () => img.remove();
+          card.appendChild(img);
+        }
+
         const title = document.createElement("strong");
         title.textContent = product.name || "बिना नाम का प्रोडक्ट";
 
         const details = document.createElement("p");
         details.textContent =
-          "₹" + (product.price ?? 0) + " / " + (product.unit || "item");
+          "₹" + (product.price ?? 0) +
+          " / " + (product.unit || "item");
 
         const actions = document.createElement("div");
         actions.className = "actions";
@@ -221,63 +365,101 @@
 
         actions.append(editBtn, deleteBtn);
         card.append(title, details, actions);
-        list.append(card);
+        list.appendChild(card);
       });
     }
 
-    byId("productForm").addEventListener("submit", async event => {
-      event.preventDefault();
+    byId("productForm").addEventListener(
+      "submit",
+      async event => {
+        event.preventDefault();
 
-      const name = byId("productName").value.trim();
-      const price = Number(byId("productPrice").value);
-      const unit = byId("productUnit").value.trim();
-
-      if (!name || !unit || !Number.isFinite(price) || price < 0) {
-        showMessage("प्रोडक्ट का नाम, सही कीमत और यूनिट भरें।", true);
-        return;
-      }
-
-      byId("saveBtn").disabled = true;
-      showMessage("सेव हो रहा है...");
-
-      try {
-        const productData = {
-          name,
-          price,
-          unit,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        if (editingId) {
-          await db.collection("products").doc(editingId).update(productData);
-          showMessage("प्रोडक्ट अपडेट हो गया।");
-        } else {
-          productData.createdAt =
-            firebase.firestore.FieldValue.serverTimestamp();
-          await db.collection("products").add(productData);
-          showMessage("प्रोडक्ट जुड़ गया।");
+        if (!auth.currentUser) {
+          showMessage("पहले Admin Login करें।", true);
+          return;
         }
 
-        cancelEdit();
-        await loadProducts();
-      } catch (error) {
-        showMessage(readableError(error), true);
-      } finally {
-        byId("saveBtn").disabled = false;
+        const name = byId("productName").value.trim();
+        const price = Number(byId("productPrice").value);
+        const unit = byId("productUnit").value.trim();
+        const imageUrl = byId("productImageUrl").value.trim();
+
+        if (
+          !name ||
+          !unit ||
+          !Number.isFinite(price) ||
+          price < 0
+        ) {
+          showMessage(
+            "प्रोडक्ट का नाम, सही कीमत और यूनिट भरें।",
+            true
+          );
+          return;
+        }
+
+        if (!validImageUrl(imageUrl)) {
+          showMessage(
+            "फोटो का सही HTTP या HTTPS URL डालें।",
+            true
+          );
+          return;
+        }
+
+        byId("saveBtn").disabled = true;
+        showMessage("सेव हो रहा है...");
+
+        try {
+          const productData = {
+            name,
+            price,
+            unit,
+            imageUrl,
+            updatedAt:
+              firebase.firestore.FieldValue.serverTimestamp()
+          };
+
+          if (editingId) {
+            await db.collection("products")
+              .doc(editingId)
+              .update(productData);
+
+            showMessage("प्रोडक्ट अपडेट हो गया।");
+          } else {
+            productData.createdAt =
+              firebase.firestore.FieldValue.serverTimestamp();
+
+            await db.collection("products").add(productData);
+            showMessage("प्रोडक्ट जुड़ गया।");
+          }
+
+          cancelEdit();
+          await loadProducts();
+        } catch (error) {
+          showMessage(readableError(error), true);
+        } finally {
+          byId("saveBtn").disabled = false;
+        }
       }
-    });
+    );
 
     function editProduct(id) {
       const product = productCache.find(item => item.id === id);
       if (!product) return;
 
       editingId = id;
+
       byId("productName").value = product.name || "";
       byId("productPrice").value = product.price ?? "";
       byId("productUnit").value = product.unit || "item";
+
+      byId("productImageUrl").value =
+        product.imageUrl || product.image || product.photo || "";
+
       byId("formTitle").textContent = "प्रोडक्ट Edit करें";
       byId("saveBtn").textContent = "बदलाव सेव करें";
       byId("cancelEditBtn").classList.remove("hidden");
+
+      previewImage();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -285,22 +467,36 @@
       editingId = null;
       byId("productForm").reset();
       byId("productUnit").value = "litre";
+
+      byId("imagePreview").style.display = "none";
+      byId("imagePreview").removeAttribute("src");
+
       byId("formTitle").textContent = "नया प्रोडक्ट जोड़ें";
       byId("saveBtn").textContent = "प्रोडक्ट जोड़ें";
       byId("cancelEditBtn").classList.add("hidden");
     }
 
     async function deleteProduct(id) {
+      if (!auth.currentUser) {
+        showMessage("पहले Admin Login करें।", true);
+        return;
+      }
+
       const product = productCache.find(item => item.id === id);
       if (!product) return;
 
-      if (!confirm('"' + (product.name || "यह प्रोडक्ट") + '" को delete करें?')) {
+      if (!confirm(
+        '"' + (product.name || "यह प्रोडक्ट") +
+        '" को delete करें?'
+      )) {
         return;
       }
 
       try {
         await db.collection("products").doc(id).delete();
+
         if (editingId === id) cancelEdit();
+
         showMessage("प्रोडक्ट delete हो गया।");
         await loadProducts();
       } catch (error) {
