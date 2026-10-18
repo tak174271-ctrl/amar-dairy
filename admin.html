@@ -1,150 +1,312 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amar Dairy - Admin Panel</title>
+  <title>Amar Dairy Admin</title>
+
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
-      background: #f3f7f4;
+      background: #f1f8f1;
       margin: 0;
-      padding: 20px;
+      padding: 16px;
+      color: #222;
     }
     .container {
-      max-width: 600px;
+      max-width: 650px;
       margin: auto;
-    }
-    h1 { color: #176b3a; }
-    .card {
       background: white;
-      padding: 18px;
-      margin: 15px 0;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px #0001;
+      box-shadow: 0 2px 12px #0001;
     }
-    input {
-      box-sizing: border-box;
+    h1 { color: #187333; text-align: center; }
+    h2 { margin-top: 26px; }
+    input, button {
       width: 100%;
       padding: 12px;
       margin: 7px 0;
-      border: 1px solid #ccc;
+      font-size: 16px;
       border-radius: 7px;
     }
+    input { border: 1px solid #bbb; }
     button {
-      padding: 11px 15px;
-      background: #176b3a;
-      color: white;
       border: 0;
-      border-radius: 7px;
-      margin-top: 8px;
+      color: white;
+      background: #187333;
       cursor: pointer;
     }
-    .delete { background: #b42318; }
-    .note { color: #9b2c2c; }
+    button:disabled { opacity: .6; }
+    .secondary { background: #555; }
+    .edit { background: #1769aa; }
+    .delete { background: #c62828; }
+    .product {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+      overflow-wrap: anywhere;
+    }
+    .actions { display: flex; gap: 8px; }
+    .actions button { flex: 1; }
+    #message { white-space: pre-wrap; }
+    .hidden { display: none; }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>🥛 Amar Dairy Admin</h1>
-    <p>प्रोडक्ट और कीमत मैनेज करें</p>
 
-    <div class="card">
-      <h2>नया प्रोडक्ट जोड़ें</h2>
-      <input id="name" placeholder="प्रोडक्ट का नाम">
-      <input id="price" type="number" min="1" placeholder="कीमत (₹)">
-      <button onclick="addProduct()">प्रोडक्ट जोड़ें</button>
-    </div>
+    <section id="loginSection">
+      <h2>Admin Login</h2>
+      <input id="email" type="email" placeholder="Admin Email" autocomplete="username">
+      <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+      <button id="loginBtn" onclick="login()">Login</button>
+    </section>
 
-    <div class="card">
-      <h2>प्रोडक्ट सूची</h2>
-      <div id="products"></div>
-    </div>
+    <section id="adminSection" class="hidden">
+      <p>आप Admin के रूप में लॉगिन हैं।</p>
+      <button class="secondary" onclick="logout()">Logout</button>
 
-    <p class="note">
-      ध्यान दें: यह शुरुआती डेमो है। डेटा इसी ब्राउज़र में सेव होता है।
-      यह सुरक्षित Owner Login नहीं है और कीमतें ग्राहक की वेबसाइट पर
-      अपने-आप अपडेट नहीं होंगी।
-    </p>
+      <h2 id="formTitle">नया प्रोडक्ट जोड़ें</h2>
+      <form id="productForm">
+        <input id="productName" type="text" placeholder="प्रोडक्ट का नाम (जैसे दूध)" required>
+        <input id="productPrice" type="number" placeholder="कीमत (₹)" min="0" step="0.01" required>
+        <input id="productUnit" type="text" placeholder="यूनिट (जैसे litre, kg, piece)" value="litre" required>
+        <button id="saveBtn" type="submit">प्रोडक्ट जोड़ें</button>
+        <button id="cancelEditBtn" class="secondary hidden" type="button" onclick="cancelEdit()">Edit रद्द करें</button>
+      </form>
+
+      <h2>सभी प्रोडक्ट</h2>
+      <div id="productsList">प्रोडक्ट लोड हो रहे हैं...</div>
+    </section>
+
+    <p id="message" role="status"></p>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <script>
-    let products = [];
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnU8sAtOusUje44o4Unf8JtG3nUjSCyQ0",
+      authDomain: "amar-dairy-78c39.firebaseapp.com",
+      projectId: "amar-dairy-78c39",
+      storageBucket: "amar-dairy-78c39.firebasestorage.app",
+      messagingSenderId: "925508209476",
+      appId: "1:925508209476:web:bf9dc517019f055a4d6511"
+    };
 
-    try {
-      products = JSON.parse(
-        localStorage.getItem("amarDairyProducts") || "[]"
-      );
-      if (!Array.isArray(products)) products = [];
-    } catch {
-      products = [];
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let editingId = null;
+    let productCache = [];
+
+    const byId = id => document.getElementById(id);
+
+    function showMessage(message, isError = false) {
+      const el = byId("message");
+      el.textContent = message;
+      el.style.color = isError ? "#c62828" : "#187333";
     }
 
-    function saveProducts() {
-      localStorage.setItem(
-        "amarDairyProducts",
-        JSON.stringify(products)
-      );
-      showProducts();
+    function readableError(error) {
+      const messages = {
+        "auth/invalid-credential": "Email या password गलत है।",
+        "auth/user-not-found": "इस email का account नहीं मिला।",
+        "auth/wrong-password": "Password गलत है।",
+        "auth/too-many-requests": "बहुत कोशिशें हुई हैं। थोड़ी देर बाद फिर प्रयास करें।",
+        "permission-denied": "Permission नहीं मिली। Firebase Firestore Rules जाँचें।",
+        "unavailable": "Internet या Firebase connection में समस्या है।"
+      };
+      return messages[error.code] || error.message || "कुछ गड़बड़ हुई।";
     }
 
-    function addProduct() {
-      const nameInput = document.getElementById("name");
-      const priceInput = document.getElementById("price");
-      const name = nameInput.value.trim();
-      const price = Number(priceInput.value);
+    async function login() {
+      const email = byId("email").value.trim();
+      const password = byId("password").value;
 
-      if (!name || !Number.isFinite(price) || price <= 0) {
-        alert("प्रोडक्ट का नाम और सही कीमत डालें।");
+      if (!email || !password) {
+        showMessage("Email और password भरें।", true);
         return;
       }
 
-      products.push({
-        id: Date.now(),
-        name: name,
-        price: price
-      });
+      byId("loginBtn").disabled = true;
+      showMessage("Login हो रहा है...");
 
-      saveProducts();
-      nameInput.value = "";
-      priceInput.value = "";
-      alert("प्रोडक्ट जुड़ गया!");
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (error) {
+        showMessage(readableError(error), true);
+      } finally {
+        byId("loginBtn").disabled = false;
+      }
     }
 
-    function deleteProduct(id) {
-      products = products.filter(p => p.id !== id);
-      saveProducts();
+    async function logout() {
+      try {
+        await auth.signOut();
+        cancelEdit();
+        showMessage("Logout हो गया।");
+      } catch (error) {
+        showMessage(readableError(error), true);
+      }
     }
 
-    function showProducts() {
-      const box = document.getElementById("products");
-      box.replaceChildren();
+    auth.onAuthStateChanged(user => {
+      byId("loginSection").classList.toggle("hidden", !!user);
+      byId("adminSection").classList.toggle("hidden", !user);
 
-      if (products.length === 0) {
-        box.textContent = "अभी कोई प्रोडक्ट नहीं है।";
+      if (user) {
+        loadProducts();
+      } else {
+        byId("productsList").textContent = "";
+      }
+    });
+
+    async function loadProducts() {
+      byId("productsList").textContent = "प्रोडक्ट लोड हो रहे हैं...";
+
+      try {
+        const snapshot = await db.collection("products").get();
+        productCache = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        renderProducts();
+      } catch (error) {
+        byId("productsList").textContent = "प्रोडक्ट लोड नहीं हुए।";
+        showMessage(readableError(error), true);
+      }
+    }
+
+    function renderProducts() {
+      const list = byId("productsList");
+      list.replaceChildren();
+
+      if (productCache.length === 0) {
+        list.textContent = "अभी कोई प्रोडक्ट नहीं है।";
         return;
       }
 
-      products.forEach(product => {
-        const row = document.createElement("div");
-        row.className = "card";
+      productCache.forEach(product => {
+        const card = document.createElement("div");
+        card.className = "product";
 
         const title = document.createElement("strong");
-        title.textContent =
-          product.name + " — ₹" + product.price;
+        title.textContent = product.name || "बिना नाम का प्रोडक्ट";
 
-        const button = document.createElement("button");
-        button.className = "delete";
-        button.textContent = "डिलीट";
-        button.onclick = () => deleteProduct(product.id);
+        const details = document.createElement("p");
+        details.textContent =
+          "₹" + (product.price ?? 0) + " / " + (product.unit || "item");
 
-        row.append(title, document.createElement("br"), button);
-        box.appendChild(row);
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "edit";
+        editBtn.textContent = "Edit";
+        editBtn.onclick = () => editProduct(product.id);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = () => deleteProduct(product.id);
+
+        actions.append(editBtn, deleteBtn);
+        card.append(title, details, actions);
+        list.append(card);
       });
     }
 
-    showProducts();
+    byId("productForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const name = byId("productName").value.trim();
+      const price = Number(byId("productPrice").value);
+      const unit = byId("productUnit").value.trim();
+
+      if (!name || !unit || !Number.isFinite(price) || price < 0) {
+        showMessage("प्रोडक्ट का नाम, सही कीमत और यूनिट भरें।", true);
+        return;
+      }
+
+      byId("saveBtn").disabled = true;
+      showMessage("सेव हो रहा है...");
+
+      try {
+        const productData = {
+          name,
+          price,
+          unit,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (editingId) {
+          await db.collection("products").doc(editingId).update(productData);
+          showMessage("प्रोडक्ट अपडेट हो गया।");
+        } else {
+          productData.createdAt =
+            firebase.firestore.FieldValue.serverTimestamp();
+          await db.collection("products").add(productData);
+          showMessage("प्रोडक्ट जुड़ गया।");
+        }
+
+        cancelEdit();
+        await loadProducts();
+      } catch (error) {
+        showMessage(readableError(error), true);
+      } finally {
+        byId("saveBtn").disabled = false;
+      }
+    });
+
+    function editProduct(id) {
+      const product = productCache.find(item => item.id === id);
+      if (!product) return;
+
+      editingId = id;
+      byId("productName").value = product.name || "";
+      byId("productPrice").value = product.price ?? "";
+      byId("productUnit").value = product.unit || "item";
+      byId("formTitle").textContent = "प्रोडक्ट Edit करें";
+      byId("saveBtn").textContent = "बदलाव सेव करें";
+      byId("cancelEditBtn").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      byId("productForm").reset();
+      byId("productUnit").value = "litre";
+      byId("formTitle").textContent = "नया प्रोडक्ट जोड़ें";
+      byId("saveBtn").textContent = "प्रोडक्ट जोड़ें";
+      byId("cancelEditBtn").classList.add("hidden");
+    }
+
+    async function deleteProduct(id) {
+      const product = productCache.find(item => item.id === id);
+      if (!product) return;
+
+      if (!confirm('"' + (product.name || "यह प्रोडक्ट") + '" को delete करें?')) {
+        return;
+      }
+
+      try {
+        await db.collection("products").doc(id).delete();
+        if (editingId === id) cancelEdit();
+        showMessage("प्रोडक्ट delete हो गया।");
+        await loadProducts();
+      } catch (error) {
+        showMessage(readableError(error), true);
+      }
+    }
   </script>
 </body>
 </html>
