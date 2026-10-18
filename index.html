@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Amar Dairy | ताज़ा दूध और डेयरी उत्पाद</title>
   <meta name="description" content="Amar Dairy, Nibi Naini Prayagraj में ताज़ा दूध और डेयरी उत्पाद।">
-
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
   <header class="header">
     <div class="container">
       <h1>🥛 Amar Dairy</h1>
       <p>शुद्धता और ताज़गी, हर दिन!</p>
-
       <nav>
         <a href="#home">होम</a>
         <a href="#products">प्रोडक्ट्स</a>
@@ -35,40 +32,8 @@
 
     <section id="products" class="section container">
       <h2>हमारे प्रोडक्ट्स</h2>
-
-      <div class="products">
-        <article class="product-card">
-          <div class="product-icon">🥛</div>
-          <h3>ताज़ा दूध</h3>
-          <p>₹60 प्रति लीटर</p>
-          <button onclick="addItem('दूध', 60)">कार्ट में जोड़ें</button>
-        </article>
-
-        <article class="product-card">
-          <div class="product-icon">🥣</div>
-          <h3>दही</h3>
-          <p>₹80 प्रति किलो</p>
-          <button onclick="addItem('दही', 80)">कार्ट में जोड़ें</button>
-        </article>
-
-        <article class="product-card">
-          <div class="product-icon">🧀</div>
-          <h3>पनीर</h3>
-          <p>₹360 प्रति किलो</p>
-          <button onclick="addItem('पनीर', 360)">कार्ट में जोड़ें</button>
-        </article>
-
-        <article class="product-card">
-          <div class="product-icon">🫙</div>
-          <h3>देसी घी</h3>
-          <p>₹600 प्रति किलो</p>
-          <button onclick="addItem('देसी घी', 600)">कार्ट में जोड़ें</button>
-        </article>
-      </div>
-
-      <p class="note">
-        नोट: ये उदाहरण के लिए रखे गए दाम हैं। अपने वास्तविक दाम के अनुसार इन्हें बदलें।
-      </p>
+      <p id="productStatus">प्रोडक्ट लोड हो रहे हैं...</p>
+      <div class="products" id="productsList"></div>
     </section>
 
     <section id="cart" class="section cart-section">
@@ -92,6 +57,8 @@
     <p>© <span id="year"></span> Amar Dairy. All rights reserved.</p>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
