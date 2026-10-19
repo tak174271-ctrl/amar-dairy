@@ -1,5 +1,5 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyBnU8sAtOusUje44o4Unf8JtG3nUjSCyQ0",
+  apiKey: "AIzaSyBnU8sAtOusUje44o4Unf8JtG3nUjSCQ0",
   authDomain: "amar-dairy-78c39.firebaseapp.com",
   projectId: "amar-dairy-78c39",
   storageBucket: "amar-dairy-78c39.firebasestorage.app",
@@ -17,24 +17,30 @@ const WHATSAPP_NUMBER = "918081104054";
 let cart = [];
 let products = [];
 
-const productIcons = {
-  "दूध": "🥛",
-  "ताज़ा दूध": "🥛",
-  "milk": "🥛",
-  "दही": "🥣",
-  "curd": "🥣",
-  "yogurt": "🥣",
-  "पनीर": "🧀",
-  "paneer": "🧀",
-  "देसी घी": "🫙",
-  "घी": "🫙",
-  "ghee": "🫙"
-  "खोवा": "🍮",
-  "khoya": "🍮",
-};
-
 function getProductIcon(name) {
-  return productIcons[String(name).trim().toLowerCase()] || "🛍️";
+  const n = String(name || "").trim().toLowerCase();
+
+  if (
+    n.includes("khoya") ||
+    n.includes("mawa") ||
+    n.includes("खोया") ||
+    n.includes("खोवा") ||
+    n.includes("मावा")
+  ) return "🍮";
+
+  if (n.includes("milk") || n.includes("दूध")) return "🥛";
+
+  if (
+    n.includes("curd") ||
+    n.includes("yogurt") ||
+    n.includes("दही")
+  ) return "🥣";
+
+  if (n.includes("paneer") || n.includes("पनीर")) return "🧀";
+
+  if (n.includes("ghee") || n.includes("घी")) return "🫙";
+
+  return "🛍️";
 }
 
 function createProductImage(product) {
@@ -61,6 +67,7 @@ function createProductImage(product) {
 
     img.onerror = function () {
       const fallback = document.createElement("div");
+
       fallback.className = "product-icon";
       fallback.textContent = getProductIcon(product.name);
       fallback.style.fontSize = "55px";
@@ -74,6 +81,7 @@ function createProductImage(product) {
   }
 
   const icon = document.createElement("div");
+
   icon.className = "product-icon";
   icon.textContent = getProductIcon(product.name);
   icon.style.fontSize = "55px";
@@ -89,7 +97,7 @@ function loadProducts() {
 
   if (!list || !status) {
     console.error(
-      "productsList या productStatus HTML में नहीं मिला।"
+      "HTML में productsList या productStatus नहीं मिला।"
     );
     return;
   }
@@ -113,6 +121,7 @@ function loadProducts() {
       if (products.length === 0) {
         status.textContent =
           "अभी कोई प्रोडक्ट उपलब्ध नहीं है।";
+
         renderCart();
         return;
       }
@@ -185,9 +194,9 @@ function removeItem(id) {
 
   if (!existing) return;
 
-  existing.quantity -= 1;
-
-  if (existing.quantity <= 0) {
+  if (existing.quantity > 1) {
+    existing.quantity -= 1;
+  } else {
     cart = cart.filter(item => item.id !== id);
   }
 
@@ -195,88 +204,83 @@ function removeItem(id) {
 }
 
 function renderCart() {
-  const cartItems = document.getElementById("cartItems");
-  const totalElement = document.getElementById("total");
+  const cartList = document.getElementById("cartItems");
+  const totalElement = document.getElementById("cartTotal");
 
-  if (!cartItems || !totalElement) return;
-
-  cartItems.replaceChildren();
-
-  if (cart.length === 0) {
-    cartItems.textContent = "आपका कार्ट खाली है।";
-    totalElement.textContent = "0";
+  if (!cartList || !totalElement) {
+    console.warn(
+      "HTML में cartItems या cartTotal नहीं मिला।"
+    );
     return;
   }
 
+  cartList.replaceChildren();
+
   let total = 0;
 
+  if (cart.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "आपका कार्ट खाली है।";
+    cartList.appendChild(empty);
+  }
+
   cart.forEach(item => {
-    const amount = item.price * item.quantity;
-    total += amount;
+    const row = document.createElement("div");
+    row.className = "cart-item";
 
-    const row = document.createElement("p");
-
-    row.appendChild(
-      document.createTextNode(
-        item.name + " — ₹" + item.price +
-        " × " + item.quantity +
-        " " + item.unit + " = ₹" + amount + " "
-      )
-    );
+    const details = document.createElement("span");
+    details.textContent =
+      item.name + " × " + item.quantity +
+      " = ₹" + (item.price * item.quantity);
 
     const removeButton = document.createElement("button");
     removeButton.type = "button";
-    removeButton.textContent = "−";
-    removeButton.setAttribute(
-      "aria-label",
-      item.name + " की एक मात्रा हटाएँ"
-    );
+    removeButton.textContent = "− हटाएँ";
 
     removeButton.addEventListener("click", () => {
       removeItem(item.id);
     });
 
-    row.appendChild(removeButton);
-    cartItems.appendChild(row);
+    row.append(details, removeButton);
+    cartList.appendChild(row);
+
+    total += item.price * item.quantity;
   });
 
-  totalElement.textContent = String(total);
+  totalElement.textContent = "₹" + total;
 }
 
 function orderWhatsApp() {
   if (cart.length === 0) {
-    alert("पहले कार्ट में प्रोडक्ट जोड़ें।");
+    alert("कृपया पहले कार्ट में प्रोडक्ट जोड़ें।");
     return;
   }
 
-  let message =
-    "नमस्ते Amar Dairy! मुझे ये सामान ऑर्डर करना है:\n\n";
-
   let total = 0;
 
+  let message = "नमस्ते Amar Dairy! मुझे ये प्रोडक्ट ऑर्डर करने हैं:\n\n";
+
   cart.forEach(item => {
-    const amount = item.price * item.quantity;
-    total += amount;
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
 
     message +=
-      item.name + " — " +
-      item.quantity + " " + item.unit +
-      " × ₹" + item.price +
-      " = ₹" + amount + "\n";
+      "• " + item.name +
+      " × " + item.quantity +
+      " " + item.unit +
+      " — ₹" + itemTotal + "\n";
   });
 
-  message += "\nकुल कीमत: ₹" + total;
-  message += "\n\nकृपया ऑर्डर कन्फर्म करें।";
+  message += "\nकुल राशि: ₹" + total;
+  message += "\n\nकृपया मेरा ऑर्डर कन्फर्म करें।";
 
   const url =
-    "https://wa.me/" + WHATSAPP_NUMBER +
-    "?text=" + encodeURIComponent(message);
+    "https://wa.me/" +
+    WHATSAPP_NUMBER +
+    "?text=" +
+    encodeURIComponent(message);
 
-  const whatsappWindow = window.open(url, "_blank");
-
-  if (!whatsappWindow) {
-    window.location.href = url;
-  }
+  window.open(url, "_blank");
 }
 
 loadProducts();
