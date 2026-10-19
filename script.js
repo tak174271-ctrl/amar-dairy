@@ -29,6 +29,8 @@ const productIcons = {
   "देसी घी": "🫙",
   "घी": "🫙",
   "ghee": "🫙"
+  "खोवा": "🍮",
+  "khoya": "🍮",
 };
 
 function getProductIcon(name) {
